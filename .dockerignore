@@ -1,0 +1,12 @@
+venv
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+devlisis.db
+.env
+.git
+.gitignore
