@@ -2,6 +2,7 @@ from functools import lru_cache
 from urllib.parse import urlparse
 
 from dotenv import load_dotenv
+from pydantic import AliasChoices
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -15,7 +16,11 @@ class Settings(BaseSettings):
     service_name: str = Field(default="devlisis-api", alias="SERVICE_NAME")
     api_v1_prefix: str = Field(default="/api", alias="API_V1_PREFIX")
 
-    mongodb_uri: str = Field(..., alias="MONGODB_URI")
+    mongodb_uri: str = Field(
+        ...,
+        alias="MONGODB_URI",
+        validation_alias=AliasChoices("MONGODB_URI", "MONGODB_URL"),
+    )
     mongodb_db_name: str = Field(default="devlisis", alias="MONGODB_DB_NAME")
 
     smtp_host: str | None = Field(default=None, alias="SMTP_HOST")
