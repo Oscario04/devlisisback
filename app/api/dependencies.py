@@ -1,6 +1,6 @@
 from fastapi import Depends, HTTPException, Request
+from pymongo.database import Database
 from starlette import status
-from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.rate_limit import InMemoryRateLimiter
@@ -16,7 +16,7 @@ contact_rate_limiter = InMemoryRateLimiter(
 )
 
 
-def get_contact_service(db: Session = Depends(get_db)) -> ContactService:
+def get_contact_service(db: Database = Depends(get_db)) -> ContactService:
     repository = ContactRequestRepository(db=db)
     email_service = SmtpEmailService()
     return ContactService(repository=repository, email_service=email_service)

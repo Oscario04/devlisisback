@@ -23,7 +23,7 @@ class ContactRequestCreate(BaseModel):
 class ContactRequestResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: int
+    id: str
     name: str
     company: str | None
     email: EmailStr

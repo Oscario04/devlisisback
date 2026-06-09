@@ -6,6 +6,7 @@ from app.core.config import settings
 from app.core.exceptions import register_exception_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import RequestLogMiddleware
+from app.database.session import close_mongo_connection, initialize_mongo_indexes
 
 configure_logging()
 
@@ -28,3 +29,13 @@ app.add_middleware(
 
 register_exception_handlers(app)
 app.include_router(api_router)
+
+
+@app.on_event("startup")
+def startup_event() -> None:
+    initialize_mongo_indexes()
+
+
+@app.on_event("shutdown")
+def shutdown_event() -> None:
+    close_mongo_connection()

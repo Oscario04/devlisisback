@@ -7,9 +7,8 @@ Backend corporativo para recepción de leads desde la landing de Devlisis.
 - Python 3.12
 - FastAPI
 - Pydantic V2
-- SQLAlchemy 2
-- SQLite
-- Alembic
+- MongoDB
+- PyMongo
 - Uvicorn
 - python-dotenv
 
@@ -26,12 +25,12 @@ app/
   database/
   utils/
   main.py
-alembic/
 ```
 
 ## Variables de entorno
 
 1. Copiar `.env.example` a `.env`.
+2. Configurar `MONGODB_URI` y `MONGODB_DB_NAME`.
 2. Completar credenciales SMTP.
 
 ## Ejecución local
@@ -43,14 +42,6 @@ pip install -r requirements.txt
 cp .env.example .env
 uvicorn app.main:app --reload
 ```
-
-## Migraciones
-
-```bash
-alembic upgrade head
-```
-
-> La app también crea tablas en startup para facilitar la primera ejecución local.
 
 ## Endpoints
 
