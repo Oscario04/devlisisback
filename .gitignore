@@ -1,3 +1,41 @@
+# Secrets and environment
 .env
+.env.*
+!.env.example
+
+# Python environments
 .venv/
 venv/
+
+# Python cache artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Local databases and runtime state
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
+# Logs and reports
+*.log
+logs/
+
+# Sensitive key and certificate files
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.cer
+*.der
+*.jks
+*.keystore
+
+# OS/editor artifacts
+.DS_Store
+.idea/
+.vscode/
