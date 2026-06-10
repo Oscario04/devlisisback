@@ -13,14 +13,16 @@ class SafeExtraFilter(logging.Filter):
             "status_code": "-",
             "duration_ms": "-",
         }
+
         for field, default_value in defaults.items():
             if not hasattr(record, field):
                 setattr(record, field, default_value)
+
         return True
 
 
 def configure_logging() -> None:
-    # ✅ settings se cargan SOLO en runtime
+    # 🔥 SAFE: se ejecuta SOLO cuando create_app() lo llama
     settings = get_settings()
 
     LOGGING_CONFIG = {
@@ -28,12 +30,11 @@ def configure_logging() -> None:
         "disable_existing_loggers": False,
         "formatters": {
             "default": {
-                "format": "%(asctime)s | %(levelname)s | %(name)s | %(message)s | "
-                           "req_id=%(request_id)s method=%(method)s path=%(path)s "
-                           "status=%(status_code)s duration_ms=%(duration_ms)s",
-            },
-            "access": {
-                "format": "%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+                "format": (
+                    "%(asctime)s | %(levelname)s | %(name)s | %(message)s | "
+                    "req_id=%(request_id)s method=%(method)s path=%(path)s "
+                    "status=%(status_code)s duration_ms=%(duration_ms)s"
+                ),
             },
         },
         "handlers": {
@@ -51,14 +52,6 @@ def configure_logging() -> None:
         "root": {
             "level": settings.log_level,
             "handlers": ["default"],
-        },
-        "loggers": {
-            "uvicorn.error": {"level": settings.log_level},
-            "uvicorn.access": {
-                "level": settings.log_level,
-                "handlers": ["default"],
-                "propagate": False,
-            },
         },
     }
 

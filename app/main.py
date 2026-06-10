@@ -8,37 +8,44 @@ from app.core.logging import configure_logging
 from app.core.middleware import RequestLogMiddleware
 from app.database.session import close_mongo_connection, initialize_mongo_indexes
 
-configure_logging()
 
-settings = get_settings()
+def create_app() -> FastAPI:
+    # 🔥 logging en runtime (no import-time)
+    configure_logging()
 
-app = FastAPI(
-    title=settings.project_name,
-    version="1.0.0",
-    docs_url="/docs" if settings.enable_docs else None,
-    redoc_url="/redoc" if settings.enable_docs else None,
-    openapi_url="/openapi.json" if settings.enable_docs else None,
-)
+    settings = get_settings()
 
-app.add_middleware(RequestLogMiddleware)
+    app = FastAPI(
+        title=settings.project_name,
+        version="1.0.0",
+        docs_url="/docs" if settings.enable_docs else None,
+        redoc_url="/redoc" if settings.enable_docs else None,
+        openapi_url="/openapi.json" if settings.enable_docs else None,
+    )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origins(),
-    allow_credentials=settings.safe_cors_allow_credentials(),
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+    app.add_middleware(RequestLogMiddleware)
 
-register_exception_handlers(app)
-app.include_router(api_router)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins(),
+        allow_credentials=settings.safe_cors_allow_credentials(),
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    register_exception_handlers(app)
+    app.include_router(api_router)
+
+    @app.on_event("startup")
+    def startup_event() -> None:
+        initialize_mongo_indexes()
+
+    @app.on_event("shutdown")
+    def shutdown_event() -> None:
+        close_mongo_connection()
+
+    return app
 
 
-@app.on_event("startup")
-def startup_event() -> None:
-    initialize_mongo_indexes()
-
-
-@app.on_event("shutdown")
-def shutdown_event() -> None:
-    close_mongo_connection()
+# 👇 ENTRYPOINT PARA VERCEL
+app = create_app()
