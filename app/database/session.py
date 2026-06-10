@@ -4,21 +4,35 @@ from pymongo.database import Database
 
 from app.core.config import get_settings
 
-settings = get_settings()
+_client = None
 
-mongo_client = MongoClient(
-    settings.mongodb_uri,
-    serverSelectionTimeoutMS=5000,
-    connectTimeoutMS=10000,
-    socketTimeoutMS=10000,
-    retryWrites=True,
-    retryReads=True,
-    tz_aware=True,
-)
+
+def get_settings_cached():
+    return get_settings()
+
+
+def get_client() -> MongoClient:
+    global _client
+
+    if _client is None:
+        settings = get_settings_cached()
+
+        _client = MongoClient(
+            settings.mongodb_uri,
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=10000,
+            socketTimeoutMS=10000,
+            retryWrites=True,
+            retryReads=True,
+            tz_aware=True,
+        )
+
+    return _client
 
 
 def get_database() -> Database:
-    return mongo_client[settings.mongodb_db_name]
+    settings = get_settings_cached()
+    return get_client()[settings.mongodb_db_name]
 
 
 def get_db() -> Generator[Database, None, None]:
@@ -34,4 +48,7 @@ def initialize_mongo_indexes() -> None:
 
 
 def close_mongo_connection() -> None:
-    mongo_client.close()
+    global _client
+    if _client:
+        _client.close()
+        _client = None
