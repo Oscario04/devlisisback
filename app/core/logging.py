@@ -14,15 +14,15 @@ class SafeExtraFilter(logging.Filter):
             "duration_ms": "-",
         }
 
-        for field, default_value in defaults.items():
+        for field, default in defaults.items():
             if not hasattr(record, field):
-                setattr(record, field, default_value)
+                setattr(record, field, default)
 
         return True
 
 
 def configure_logging() -> None:
-    # 🔥 SAFE: se ejecuta SOLO cuando create_app() lo llama
+    # 🔥 solo se ejecuta en lifespan (NO import-time)
     settings = get_settings()
 
     LOGGING_CONFIG = {
@@ -45,9 +45,7 @@ def configure_logging() -> None:
             },
         },
         "filters": {
-            "safe_extra": {
-                "()": "app.core.logging.SafeExtraFilter",
-            }
+            "safe_extra": {"()": "app.core.logging.SafeExtraFilter"},
         },
         "root": {
             "level": settings.log_level,
@@ -56,8 +54,3 @@ def configure_logging() -> None:
     }
 
     dictConfig(LOGGING_CONFIG)
-
-    logging.getLogger(__name__).info(
-        "Logging configured",
-        extra={"log_level": settings.log_level},
-    )
