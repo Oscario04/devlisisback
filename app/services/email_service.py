@@ -10,18 +10,21 @@ from app.utils.email_templates import build_new_lead_email_body
 
 logger = logging.getLogger(__name__)
 
-settings = get_settings()
-
 
 class EmailService(Protocol):
     def send_new_lead_notification(self, contact: ContactRequest) -> None:
-        ...
+        """Send a notification email for a newly received lead."""
 
 
 class SmtpEmailService:
     def send_new_lead_notification(self, contact: ContactRequest) -> None:
+        # 🔴 IMPORTANT: settings must be loaded at runtime (not import time)
+        settings = get_settings()
+
         if not settings.smtp_is_configured():
-            raise EmailDeliveryError("SMTP no configurado")
+            raise EmailDeliveryError(
+                "El servicio SMTP no está configurado. Revisa las variables de entorno SMTP_."
+            )
 
         message = EmailMessage()
         message["Subject"] = "Nuevo lead desde Devlisis.com"
@@ -35,12 +38,18 @@ class SmtpEmailService:
                 settings.smtp_port,
                 timeout=settings.smtp_timeout_seconds,
             ) as smtp:
+
                 if settings.smtp_use_tls:
                     smtp.starttls()
 
                 smtp.login(settings.smtp_user, settings.smtp_password)
                 smtp.send_message(message)
 
-        except Exception as exc:
-            logger.exception("SMTP error", exc_info=exc)
-            raise EmailDeliveryError("No se pudo enviar correo") from exc
+            logger.info(
+                "Lead notification email sent",
+                extra={"contact_id": contact.id},
+            )
+
+        except (smtplib.SMTPException, OSError) as exc:
+            logger.exception("Failed to send lead notification email", exc_info=exc)
+            raise EmailDeliveryError("No fue posible enviar el correo del lead.") from exc
