@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     turnstile_enabled: bool = Field(default=True, alias="TURNSTILE_ENABLED")
     turnstile_timeout_seconds: int = Field(default=5, alias="TURNSTILE_TIMEOUT_SECONDS", ge=2, le=30)
 
-    frontend_url: str = Field(default="http://localhost:5173", alias="FRONTEND_URL")
+    frontend_url: str = Field(default="https://devlisis.com", alias="FRONTEND_URL")
     cors_allow_credentials: bool = Field(default=True, alias="CORS_ALLOW_CREDENTIALS")
     enable_docs: bool = Field(default=True, alias="ENABLE_DOCS")
     contact_dedupe_window_seconds: int = Field(
