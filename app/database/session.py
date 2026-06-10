@@ -1,9 +1,10 @@
 from collections.abc import Generator
-
 from pymongo import ASCENDING, DESCENDING, MongoClient
 from pymongo.database import Database
 
-from app.core.config import settings
+from app.core.config import get_settings
+
+settings = get_settings()
 
 mongo_client = MongoClient(
     settings.mongodb_uri,
@@ -27,6 +28,7 @@ def get_db() -> Generator[Database, None, None]:
 def initialize_mongo_indexes() -> None:
     db = get_database()
     collection = db["contact_requests"]
+
     collection.create_index([("created_at", DESCENDING)], background=True)
     collection.create_index([("email", ASCENDING)], background=True)
 

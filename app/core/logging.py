@@ -1,7 +1,9 @@
 import logging
 from logging.config import dictConfig
 
-from app.core.config import settings
+from app.core.config import get_settings
+
+settings = get_settings()
 
 
 class SafeExtraFilter(logging.Filter):
@@ -26,9 +28,6 @@ LOGGING_CONFIG = {
         "default": {
             "format": "%(asctime)s | %(levelname)s | %(name)s | %(message)s | req_id=%(request_id)s method=%(method)s path=%(path)s status=%(status_code)s duration_ms=%(duration_ms)s",
         },
-        "access": {
-            "format": "%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-        },
     },
     "handlers": {
         "default": {
@@ -42,14 +41,24 @@ LOGGING_CONFIG = {
             "()": "app.core.logging.SafeExtraFilter",
         }
     },
-    "root": {"level": settings.log_level, "handlers": ["default"]},
+    "root": {
+        "level": settings.log_level,
+        "handlers": ["default"],
+    },
     "loggers": {
         "uvicorn.error": {"level": settings.log_level},
-        "uvicorn.access": {"level": settings.log_level, "handlers": ["default"], "propagate": False},
+        "uvicorn.access": {
+            "level": settings.log_level,
+            "handlers": ["default"],
+            "propagate": False,
+        },
     },
 }
 
 
 def configure_logging() -> None:
     dictConfig(LOGGING_CONFIG)
-    logging.getLogger(__name__).info("Logging configured", extra={"log_level": settings.log_level})
+    logging.getLogger(__name__).info(
+        "Logging configured",
+        extra={"log_level": settings.log_level},
+    )

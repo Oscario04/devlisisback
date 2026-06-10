@@ -2,13 +2,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import api_router
-from app.core.config import settings
+from app.core.config import get_settings
 from app.core.exceptions import register_exception_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import RequestLogMiddleware
 from app.database.session import close_mongo_connection, initialize_mongo_indexes
 
 configure_logging()
+
+settings = get_settings()
 
 app = FastAPI(
     title=settings.project_name,
@@ -19,13 +21,14 @@ app = FastAPI(
 )
 
 app.add_middleware(RequestLogMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins(),
     allow_credentials=settings.safe_cors_allow_credentials(),
     allow_methods=["*"],
     allow_headers=["*"],
-) 
+)
 
 register_exception_handlers(app)
 app.include_router(api_router)
