@@ -2,7 +2,7 @@ from fastapi import Depends, HTTPException, Request
 from pymongo.database import Database
 from starlette import status
 
-from app.core.config import settings
+from app.core.config import get_settings
 from app.core.rate_limit import InMemoryRateLimiter
 from app.database.session import get_db
 from app.repositories.contact_repository import ContactRequestRepository
@@ -10,12 +10,19 @@ from app.services.contact_service import ContactService
 from app.services.email_service import SmtpEmailService
 from app.services.turnstile_service import CloudflareTurnstileService, TurnstileService
 
+
+# ---------------- SETTINGS (lazy-safe) ----------------
+settings = get_settings()
+
+
+# ---------------- RATE LIMITER ----------------
 contact_rate_limiter = InMemoryRateLimiter(
     max_requests=settings.contact_rate_limit_requests,
     window_seconds=settings.contact_rate_limit_window_seconds,
 )
 
 
+# ---------------- SERVICES ----------------
 def get_contact_service(db: Database = Depends(get_db)) -> ContactService:
     repository = ContactRequestRepository(db=db)
     email_service = SmtpEmailService()
@@ -26,6 +33,7 @@ def get_turnstile_service() -> TurnstileService:
     return CloudflareTurnstileService()
 
 
+# ---------------- REQUEST CONTEXT ----------------
 def get_client_ip(request: Request) -> str:
     cf_ip = request.headers.get("CF-Connecting-IP")
     if cf_ip:
@@ -41,7 +49,10 @@ def get_client_ip(request: Request) -> str:
     return "unknown"
 
 
-def enforce_contact_rate_limit(client_ip: str = Depends(get_client_ip)) -> None:
+# ---------------- RATE LIMIT DEPENDENCY ----------------
+def enforce_contact_rate_limit(
+    client_ip: str = Depends(get_client_ip),
+) -> None:
     if not contact_rate_limiter.is_allowed(client_ip):
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
